@@ -23,7 +23,18 @@ module View
         private #Funciones solo accesibles desde esta clase
 
         def render_snake(state)
-            
+            extend Ruby2D::DSL
+            snake = state.snake
+            #Iteramos obre la posicion de la serpiente
+            snake.positions.each do |pos|
+                    
+                Square.new(
+                    x: pos.column * @pixel_size,
+                    y: pos.row * @pixel_size,
+                    size: @pixel_size,
+                    color: "green",
+                )
+            end
         end
 
         def render_food(state)
@@ -38,4 +49,3 @@ module View
         end
     end
 end
-
