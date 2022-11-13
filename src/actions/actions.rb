@@ -1,58 +1,63 @@
-module Actions #Realiza las acciones consecutivas a cada evento (avanzar, girar)
-    #Estos métodos reciben el estado actual y retornan el nuevo estado
+module Actions
+
     def self.move_snake(state) 
-        next_direction = state.next_direction
+        next_direction = state.current_direction
         next_position = calc_next_position(state)
-        #Verificamos que la sig. casilla sea válida para terminar o continuar el juego
-        if position_is_valid?(state, next_position)
+        if position_is_food?(state, next_position)
+            grow_snake_to(state, next_position)
+        elsif position_is_valid?(state, next_position)
             move_snake_to(state, next_position)
         else
             end_game(state)
         end
     end
 
+    def self.change_direction(state, direction)
+        if next_direction_is_valid?(state, direction)
+            state.current_direction = direction
+        else
+            puts "Invalid Direction"
+        end
+        state
+    end
+
     private
+
+    def self.position_is_food?(state, next_position)
+        state.food.row == next_position.row && state.food.column == next_position.column
+    end
+
+    def self.grow_snake_to(state, next_position)
+        new_positions = [next_position] + state.snake.positions
+        state.snake.positions = new_positions
+        state
+    end
 
     def self.calc_next_position(state)
         current_position = state.snake.positions.first
-        case state.next_direction
-        when Model::Direction::LEFT 
-            #decrementar fila
-            #[(1,1),(0,1)]
-            return Model::Coord.new(current_position.row - 1, current_position.column)
+        case state.current_direction
+        when Model::Direction::UP 
+            return Model::Coord.new(current_position.row - 1,current_position.column)
         when Model::Direction::RIGHT
-            #incrementar columna
-            return Model::Coord.new(current_position.row, current_position.column + 1)
-
-        when Model::Direction::UP
-            #incrementar fila
-            return Model::Coord.new(current_position.row + 1, current_position.column)
-
-        when Model::Direction::DOWN 
-            #decrementar columna
-            return Model::Coord.new(
-                current_position.row,
-                current_position.column - 1)
+            return Model::Coord.new(current_position.row,current_position.column + 1)
+        when Model::Direction::DOWN
+            return Model::Coord.new(current_position.row + 1,current_position.column)
+        when Model::Direction::LEFT
+            return Model::Coord.new(current_position.row,current_position.column - 1)
         end
     end
-    #Verifica si la siguiente posicion es válida
+
     def self.position_is_valid?(state, position)
-        #Verificar que estè en la grilla
         is_invalid = ((position.row >= state.grid.rows ||
-            position.row > 0) ||
+            position.row < 0) ||
             (position.column >= state.grid.columns ||
-            position.column > 0))
+            position.column < 0))
         return false if is_invalid
-        #Verificar que no esté superponiendo a la serpiente
         return !(state.snake.positions.include? position)  
     end
 
     def self.move_snake_to(state, next_position)
-        #Posición inicial
-        #[(1,1)(1,0)]
-        #Simulamos la rotacion del arreglo de la serpiente
-        new_positions = [new_position] + state.snake.positions[0...-1]
-        #Modificamos el estado
+        new_positions = [next_position] + state.snake.positions[0...-1]
         state.snake.positions = new_positions
         state
     end
@@ -60,5 +65,20 @@ module Actions #Realiza las acciones consecutivas a cada evento (avanzar, girar)
     def self.end_game(state)
         state.game_over = true
         state
+    end
+
+    def self.next_direction_is_valid?(state, direction)
+        case state.current_direction
+        when Model::Direction::UP
+            return true if direction != Model::Direction::DOWN
+        when Model::Direction::DOWN
+            return true if direction != Model::Direction::UP
+        when Model::Direction::RIGHT
+            return true if direction != Model::Direction::LEFT
+        when Model::Direction::LEFT
+            return true if direction != Model::Direction::RIGHT
+        end
+
+        return false
     end
 end

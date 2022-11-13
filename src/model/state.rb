@@ -1,11 +1,12 @@
-#Clases necesarias para representar el estado de nuestra app.
 module Model
+
     module Direction
         LEFT = :left
         RIGHT = :right
         UP = :up
         DOWN = :down
     end
+
     class Coord < Struct.new(:row, :column)
     end
     
@@ -18,7 +19,7 @@ module Model
     class Grid < Struct.new(:rows, :columns)
     end
 
-    class State < Struct.new(:snake, :food, :grid, :next_direction, :game_over)
+    class State < Struct.new(:snake, :food, :grid, :current_direction, :game_over)
     end
 
     def self.initial_state
@@ -28,7 +29,7 @@ module Model
                 Model::Coord.new(0, 1)
             ]),
             Model::Food.new(4, 4),
-            Model::Grid.new(8, 12),
+            Model::Grid.new(16, 24),
             Direction::DOWN,
             false
         )
