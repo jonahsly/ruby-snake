@@ -23,6 +23,8 @@ module View
         end
         
         def renderGame(state)
+            extend Ruby2D::DSL
+            close if state.game_over
             render_snake(state)
             render_food(state)
         end
@@ -36,6 +38,7 @@ module View
             @food = Square.new(
                 x: food.column * @pixel_size,
                 y: food.row * @pixel_size,
+                z: -1,
                 size: @pixel_size,
                 color: "white"
             )            

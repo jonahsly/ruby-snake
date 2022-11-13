@@ -29,7 +29,7 @@ module Model
                 Model::Coord.new(0, 1)
             ]),
             Model::Food.new(4, 4),
-            Model::Grid.new(16, 24),
+            Model::Grid.new(8,10),
             Direction::DOWN,
             false
         )
