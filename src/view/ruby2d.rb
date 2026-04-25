@@ -23,12 +23,18 @@ module View
                 handle_key_event(event)  # Handles key press events
             end
             show  # Displays the window
+            # Notify the app loop after any window close path.
+            @app.request_stop
         end
         
         # Renders the game state, updating the positions of the snake and food
         def renderGame(state)
             extend Ruby2D::DSL
-            close if state.game_over  # Closes the window if the game is over
+            if state.game_over
+                @app.request_stop
+                close  # Closes the window if the game is over
+                return
+            end
             render_snake(state)  # Renders the snake on the grid
             render_food(state)  # Renders the food on the grid
         end
@@ -75,6 +81,10 @@ module View
                 @app.send_action(:change_direction, Model::Direction::LEFT)
             when "right"
                 @app.send_action(:change_direction, Model::Direction::RIGHT)
+            when "escape", "q"
+                # Fast quit path to avoid leaving a running process in terminal.
+                @app.request_stop
+                close
             end
         end
     end

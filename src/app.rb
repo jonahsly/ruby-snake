@@ -7,21 +7,28 @@ class App
     def initialize
         @state = Model::initial_state  # Initialize the game state using a method from the Model module
         @speed = 0.5  # Set the initial speed of the game
+        @running = false  # Controls timer loop lifecycle
     end
 
     def start
         @view = View::Ruby2dView.new(self)  # Create a new view object for the game
+        @running = true
         timer_thread = Thread.new { init_timer }  # Start a new thread to handle game timing
         @view.start(@state)  # Start the game view
-        timer_thread.join  # Ensure the timer thread continues running
+    ensure
+        # Ensure the process can always return to shell if the window closes unexpectedly.
+        request_stop
+        timer_thread.join(1) if timer_thread
+        timer_thread.kill if timer_thread&.alive?
     end
 
     def init_timer
         snake_length = @state.snake.positions.length  # Get the initial length of the snake
-        loop do
+        while @running
             if @state.game_over  # Check if the game is over
                 puts "GAME OVER"
                 puts "Puntaje: #{@state.snake.positions.length-2}"  # Display the score, subtracting 2 for the initial length
+                @running = false
                 break  # Exit the loop if the game is over
             end
             @state = Actions::move_snake(@state)  # Update the game state by moving the snake
@@ -35,11 +42,18 @@ class App
     end
 
     def send_action(action, params)
+        return unless @running
+
         new_state = Actions.send(action, @state, params)  # Send an action to be processed
         if new_state.hash != @state.hash  # Check if the state has changed
             @state = new_state  # Update the state if it has changed
             @view.renderGame(@state)  # Re-render the game view
         end
+    end
+
+    # Called by the view when the player closes the window or requests quit.
+    def request_stop
+        @running = false
     end
 
     private 
