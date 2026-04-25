@@ -28,8 +28,21 @@ module Actions
     private
 
     def self.generate_food(state)
-        new_food = Model::Food.new(rand(state.grid.rows), rand(state.grid.columns))
-        state.food = new_food
+        free_positions = []
+
+        # Build a list of available cells to guarantee valid food spawn.
+        (0...state.grid.rows).each do |row|
+            (0...state.grid.columns).each do |column|
+                coord = Model::Coord.new(row, column)
+                free_positions << coord unless state.snake.positions.include?(coord)
+            end
+        end
+
+        # No free space means the board is complete; end the round gracefully.
+        return end_game(state) if free_positions.empty?
+
+        next_food_position = free_positions[rand(free_positions.length)]
+        state.food = Model::Food.new(next_food_position.row, next_food_position.column)
         state
     end
 

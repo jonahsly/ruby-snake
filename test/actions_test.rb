@@ -87,4 +87,43 @@ class ActionsTest < Minitest::Test
             assert_equal actual_state.food, Model::Food.new(0,0), "Food should be generated at a new position"
         end
     end
+
+    # Test to ensure new food is placed in a free cell when only one is available
+    def test_generate_food_uses_only_free_cell
+        # 2x3 board where (1,2) is the only available cell after eating.
+        initial_state = Model::State.new(
+            Model::Snake.new([
+                Model::Coord.new(0,1),
+                Model::Coord.new(0,0),
+                Model::Coord.new(1,0),
+                Model::Coord.new(1,1)
+            ]),
+            Model::Food.new(0,2),
+            Model::Grid.new(2,3),
+            Model::Direction::RIGHT,
+            false
+        )
+
+        actual_state = Actions::move_snake(initial_state)
+        assert_equal actual_state.food, Model::Food.new(1,2), "Food should spawn in the only free cell"
+    end
+
+    # Test to ensure game ends when no free cells remain after eating
+    def test_end_game_when_grid_is_full_after_eating
+        # 2x2 board that becomes fully occupied right after the next move.
+        initial_state = Model::State.new(
+            Model::Snake.new([
+                Model::Coord.new(0,1),
+                Model::Coord.new(0,0),
+                Model::Coord.new(1,0)
+            ]),
+            Model::Food.new(1,1),
+            Model::Grid.new(2,2),
+            Model::Direction::DOWN,
+            false
+        )
+
+        actual_state = Actions::move_snake(initial_state)
+        assert_equal true, actual_state.game_over, "Game should end when the grid becomes full"
+    end
 end
