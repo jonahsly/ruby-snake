@@ -126,4 +126,42 @@ class ActionsTest < Minitest::Test
         actual_state = Actions::move_snake(initial_state)
         assert_equal true, actual_state.game_over, "Game should end when the grid becomes full"
     end
+
+    # Test to ensure game ends when the snake hits the grid boundary
+    def test_end_game_on_wall_collision
+        # Head starts at row 0 and moves up, which should leave the board.
+        initial_state = Model::State.new(
+            Model::Snake.new([
+                Model::Coord.new(0, 1),
+                Model::Coord.new(1, 1)
+            ]),
+            Model::Food.new(4, 4),
+            Model::Grid.new(8, 10),
+            Model::Direction::UP,
+            false
+        )
+
+        actual_state = Actions::move_snake(initial_state)
+        assert_equal true, actual_state.game_over, "Game should end after wall collision"
+    end
+
+    # Test to ensure game ends when the snake collides with itself
+    def test_end_game_on_self_collision
+        # Next move to the right lands on an existing body segment.
+        initial_state = Model::State.new(
+            Model::Snake.new([
+                Model::Coord.new(1, 1),
+                Model::Coord.new(1, 2),
+                Model::Coord.new(2, 2),
+                Model::Coord.new(2, 1)
+            ]),
+            Model::Food.new(4, 4),
+            Model::Grid.new(5, 5),
+            Model::Direction::RIGHT,
+            false
+        )
+
+        actual_state = Actions::move_snake(initial_state)
+        assert_equal true, actual_state.game_over, "Game should end after self collision"
+    end
 end
