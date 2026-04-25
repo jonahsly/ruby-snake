@@ -1,9 +1,7 @@
 # frozen_string_literal: true
 
+# Primary gem source for deterministic installs across environments.
 source "https://rubygems.org"
-git_source(:github) {|ruby-snake| "https://github.com/jonahsly/#{repo_name}" }
-
-# gem "rails"
-
-gem 'ruby2d', '0.12.1'
-gem 'minitest', '5.16.3'
+# Keep dependencies pinned to avoid accidental runtime drift.
+gem "ruby2d", "0.12.1"
+gem "minitest", "5.16.3"

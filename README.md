@@ -4,7 +4,7 @@ A simple implementation of the classic Snake game built with Ruby and Ruby2D.
 
 ## Table of Contents
 - [English](#english)
-- [Español](#español)
+- [Espanol](#espanol)
 
 ## English
 
@@ -25,9 +25,7 @@ A simple implementation of the classic Snake game built with Ruby and Ruby2D.
 
 ### Requirements
 - Ruby 2.7+
-- Gems:
-  - `ruby2d` (`0.12.1`)
-  - `minitest` (`5.16.3`)
+- Bundler
 
 ### Installation
 1. Clone the repository:
@@ -37,13 +35,12 @@ cd ruby-snake
 ```
 2. Install dependencies:
 ```bash
-gem install ruby2d -v 0.12.1
-gem install minitest -v 5.16.3
+bundle install
 ```
 
 ### Run the Game
 ```bash
-ruby src/app.rb
+bundle exec ruby src/app.rb
 ```
 
 ### Controls
@@ -54,7 +51,7 @@ ruby src/app.rb
 
 ### Run Tests
 ```bash
-ruby test/actions_test.rb
+bundle exec ruby test/actions_test.rb
 ```
 
 ### Project Structure
@@ -69,30 +66,28 @@ This project is licensed under the MIT License. See `LICENSE` for details.
 
 ---
 
-## Español
+## Espanol
 
-### Descripción General
-`ruby-snake` es una versión de escritorio simple del juego clásico Snake. El juego se renderiza en una grilla con Ruby2D, mueve la serpiente automáticamente, aumenta la velocidad al crecer y termina al chocar contra una pared o contra sí misma.
+### Descripcion General
+`ruby-snake` es una version de escritorio simple del juego clasico Snake. El juego se renderiza en una grilla con Ruby2D, mueve la serpiente automaticamente, aumenta la velocidad al crecer y termina al chocar contra una pared o contra si misma.
 
 ### Funcionalidades
 - Jugabilidad de Snake basada en grilla.
-- Control de dirección con teclado (`Arriba`, `Abajo`, `Izquierda`, `Derecha`).
-- Aparición de comida y crecimiento de la serpiente.
+- Control de direccion con teclado (`Arriba`, `Abajo`, `Izquierda`, `Derecha`).
+- Aparicion de comida y crecimiento de la serpiente.
 - Aumento progresivo de velocidad a medida que crece.
-- Pruebas automáticas básicas para las acciones del juego.
+- Pruebas automaticas basicas para las acciones del juego.
 
-### Stack Tecnológico
+### Stack Tecnologico
 - Ruby
 - Ruby2D
 - Minitest
 
 ### Requisitos
 - Ruby 2.7+
-- Gemas:
-  - `ruby2d` (`0.12.1`)
-  - `minitest` (`5.16.3`)
+- Bundler
 
-### Instalación
+### Instalacion
 1. Clona el repositorio:
 ```bash
 git clone https://github.com/<tu-usuario>/ruby-snake.git
@@ -100,13 +95,12 @@ cd ruby-snake
 ```
 2. Instala las dependencias:
 ```bash
-gem install ruby2d -v 0.12.1
-gem install minitest -v 5.16.3
+bundle install
 ```
 
 ### Ejecutar el Juego
 ```bash
-ruby src/app.rb
+bundle exec ruby src/app.rb
 ```
 
 ### Controles
@@ -117,7 +111,7 @@ ruby src/app.rb
 
 ### Ejecutar Pruebas
 ```bash
-ruby test/actions_test.rb
+bundle exec ruby test/actions_test.rb
 ```
 
 ### Estructura del Proyecto
@@ -125,7 +119,7 @@ ruby test/actions_test.rb
 - `src/model/state.rb`: Modelo de dominio y estado inicial.
 - `src/actions/actions.rb`: Movimiento y reglas del juego.
 - `src/view/ruby2d.rb`: Renderizado y entrada de teclado.
-- `test/actions_test.rb`: Pruebas unitarias de la lógica de acciones.
+- `test/actions_test.rb`: Pruebas unitarias de la logica de acciones.
 
 ### Licencia
-Este proyecto está licenciado bajo la licencia MIT. Revisa `LICENSE` para más detalles.
+Este proyecto esta licenciado bajo la licencia MIT. Revisa `LICENSE` para mas detalles.
