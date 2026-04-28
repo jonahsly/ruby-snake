@@ -10,10 +10,11 @@ module View
             @pixel_size = 50
             @app = app
             @status_labels = []
+            @hud_labels = []
         end
 
         # Starts the Ruby2D window and game loop
-        def start(state, mode, score)
+        def start(state, mode, hud_data)
             extend Ruby2D::DSL
             set(
                 title: "Viper",  # Window title
@@ -23,21 +24,53 @@ module View
             on :key_down do |event|
                 handle_key_event(event)  # Handles key press events
             end
-            render(state, mode, score)
+            render(state, mode, hud_data)
             show  # Displays the window
             # Notify the app loop after any window close path.
             @app.request_stop
         end
         
         # Renders the game state, updating the positions of the snake and food
-        def render(state, mode, score)
+        def render(state, mode, hud_data)
             extend Ruby2D::DSL
             render_snake(state)  # Renders the snake on the grid
             render_food(state)  # Renders the food on the grid
-            render_status(mode, score)
+            render_hud(hud_data)
+            render_status(mode, hud_data[:score])
         end
 
         private
+
+        # Displays score, high score and speed on every frame.
+        def render_hud(hud_data)
+            @hud_labels.each(&:remove)
+            @hud_labels = []
+
+            @hud_labels << Text.new(
+                "Score: #{hud_data[:score]}",
+                x: 10,
+                y: 8,
+                size: 16,
+                color: "white",
+                z: 10
+            )
+            @hud_labels << Text.new(
+                "High: #{hud_data[:high_score]}",
+                x: 10,
+                y: 28,
+                size: 16,
+                color: "white",
+                z: 10
+            )
+            @hud_labels << Text.new(
+                format("Speed: %.3fs", hud_data[:speed]),
+                x: 10,
+                y: 48,
+                size: 16,
+                color: "white",
+                z: 10
+            )
+        end
 
         # Rebuilds text overlays to keep the current mode visible to the player.
         def render_status(mode, score)

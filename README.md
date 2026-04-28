@@ -16,6 +16,8 @@ A simple implementation of the classic Snake game built with Ruby and Ruby2D.
 - Keyboard direction control (`Up`, `Down`, `Left`, `Right`).
 - Food spawning and snake growth.
 - Progressive speed increase as the snake gets longer.
+- In-game HUD with current score, high score, and speed.
+- One accepted turn per movement tick to avoid ambiguous double turns.
 - Basic automated tests for game actions.
 
 ### Tech Stack
@@ -80,6 +82,8 @@ This project is licensed under the MIT License. See `LICENSE` for details.
 - Control de direccion con teclado (`Arriba`, `Abajo`, `Izquierda`, `Derecha`).
 - Aparicion de comida y crecimiento de la serpiente.
 - Aumento progresivo de velocidad a medida que crece.
+- HUD en juego con puntaje actual, mejor puntaje y velocidad.
+- Un solo giro aceptado por tick para evitar dobles giros ambiguos.
 - Pruebas automaticas basicas para las acciones del juego.
 
 ### Stack Tecnologico
