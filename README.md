@@ -44,10 +44,14 @@ bundle exec ruby src/app.rb
 ```
 
 ### Controls
+- `Enter`: Start game
 - `Up Arrow`: Move up
 - `Down Arrow`: Move down
 - `Left Arrow`: Move left
 - `Right Arrow`: Move right
+- `P`: Pause / Resume
+- `R`: Restart round
+- `Esc` or `Q`: Quit
 
 ### Run Tests
 ```bash
@@ -104,10 +108,14 @@ bundle exec ruby src/app.rb
 ```
 
 ### Controles
+- `Enter`: Iniciar juego
 - `Flecha Arriba`: Mover arriba
 - `Flecha Abajo`: Mover abajo
 - `Flecha Izquierda`: Mover a la izquierda
 - `Flecha Derecha`: Mover a la derecha
+- `P`: Pausar / Reanudar
+- `R`: Reiniciar ronda
+- `Esc` o `Q`: Salir
 
 ### Ejecutar Pruebas
 ```bash

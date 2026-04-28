@@ -9,10 +9,11 @@ module View
         def initialize(app)
             @pixel_size = 50
             @app = app
+            @status_labels = []
         end
 
         # Starts the Ruby2D window and game loop
-        def start(state)
+        def start(state, mode, score)
             extend Ruby2D::DSL
             set(
                 title: "Viper",  # Window title
@@ -22,24 +23,75 @@ module View
             on :key_down do |event|
                 handle_key_event(event)  # Handles key press events
             end
+            render(state, mode, score)
             show  # Displays the window
             # Notify the app loop after any window close path.
             @app.request_stop
         end
         
         # Renders the game state, updating the positions of the snake and food
-        def renderGame(state)
+        def render(state, mode, score)
             extend Ruby2D::DSL
-            if state.game_over
-                @app.request_stop
-                close  # Closes the window if the game is over
-                return
-            end
             render_snake(state)  # Renders the snake on the grid
             render_food(state)  # Renders the food on the grid
+            render_status(mode, score)
         end
 
         private
+
+        # Rebuilds text overlays to keep the current mode visible to the player.
+        def render_status(mode, score)
+            @status_labels.each(&:remove)
+            @status_labels = []
+
+            case mode
+            when :start_screen
+                @status_labels << Text.new(
+                    "Press Enter to Start",
+                    x: 18,
+                    y: 12,
+                    size: 28,
+                    color: "yellow"
+                )
+                @status_labels << Text.new(
+                    "P: Pause  R: Restart  Esc/Q: Quit",
+                    x: 18,
+                    y: 48,
+                    size: 18,
+                    color: "white"
+                )
+            when :paused
+                @status_labels << Text.new(
+                    "PAUSED - Press P to Resume",
+                    x: 18,
+                    y: 12,
+                    size: 26,
+                    color: "orange"
+                )
+                @status_labels << Text.new(
+                    "R: Restart  Esc/Q: Quit",
+                    x: 18,
+                    y: 48,
+                    size: 18,
+                    color: "white"
+                )
+            when :game_over
+                @status_labels << Text.new(
+                    "GAME OVER - Score: #{score}",
+                    x: 18,
+                    y: 12,
+                    size: 28,
+                    color: "red"
+                )
+                @status_labels << Text.new(
+                    "Press R to Restart or Esc/Q to Quit",
+                    x: 18,
+                    y: 48,
+                    size: 18,
+                    color: "white"
+                )
+            end
+        end
         
         # Renders the food at its current position
         def render_food(state)
@@ -81,6 +133,15 @@ module View
                 @app.send_action(:change_direction, Model::Direction::LEFT)
             when "right"
                 @app.send_action(:change_direction, Model::Direction::RIGHT)
+            when "return"
+                # Starts the game from the start screen.
+                @app.start_game
+            when "p"
+                # Toggles pause/resume only for active gameplay.
+                @app.toggle_pause
+            when "r"
+                # Restarts the round from game over, paused, or running states.
+                @app.restart_game
             when "escape", "q"
                 # Fast quit path to avoid leaving a running process in terminal.
                 @app.request_stop
