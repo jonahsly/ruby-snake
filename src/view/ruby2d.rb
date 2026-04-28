@@ -24,14 +24,18 @@ module View
             on :key_down do |event|
                 handle_key_event(event)  # Handles key press events
             end
-            render(state, mode, hud_data)
+            # Keep game updates in Ruby2D's main loop to avoid orphan background threads.
+            update do
+                @app.tick
+            end
+            render_frame(state, mode, hud_data)
             show  # Displays the window
             # Notify the app loop after any window close path.
             @app.request_stop
         end
         
         # Renders the game state, updating the positions of the snake and food
-        def render(state, mode, hud_data)
+        def render_frame(state, mode, hud_data)
             extend Ruby2D::DSL
             render_snake(state)  # Renders the snake on the grid
             render_food(state)  # Renders the food on the grid

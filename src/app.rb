@@ -16,35 +16,34 @@ class App
     def start
         @view = View::Ruby2dView.new(self)  # Create a new view object for the game
         @running = true
-        timer_thread = Thread.new { init_timer }  # Start a new thread to handle game timing
         @view.start(@state, @mode, hud_data)  # Start the game view
     ensure
-        # Ensure the process can always return to shell if the window closes unexpectedly.
+        # Ensure the app state is closed when the window loop exits.
         request_stop
-        timer_thread.join(1) if timer_thread
-        timer_thread.kill if timer_thread&.alive?
     end
 
-    def init_timer
-        while @running
-            if @mode == :running
-                @state = Actions::move_snake(@state)  # Update the game state by moving the snake
-                if @state.game_over
-                    puts "GAME OVER"
-                    puts "Puntaje: #{score}"
-                    update_high_score
-                    @mode = :game_over
-                end
-                if @tracked_snake_length < @state.snake.positions.length  # Check if the snake has grown
-                    @tracked_snake_length = @state.snake.positions.length  # Update the snake length tracker
-                    increment_speed  # Increase the game speed
-                end
-                # Unlock one direction change for the next simulation tick.
-                @direction_changed_this_tick = false
+    # Drives one Ruby2D update frame from the window loop.
+    def tick
+        return unless @running
+
+        if @mode == :running && step_due?
+            @state = Actions::move_snake(@state)  # Update the game state by moving the snake
+            if @state.game_over
+                puts "GAME OVER"
+                puts "Puntaje: #{score}"
+                update_high_score
+                @mode = :game_over
             end
-            @view.render(@state, @mode, hud_data)
-            sleep(@mode == :running ? @speed : 0.05)
+            if @tracked_snake_length < @state.snake.positions.length  # Check if the snake has grown
+                @tracked_snake_length = @state.snake.positions.length  # Update the snake length tracker
+                increment_speed  # Increase the game speed
+            end
+            # Unlock one direction change for the next simulation tick.
+            @direction_changed_this_tick = false
+            @last_step_at = monotonic_now
         end
+
+        @view.render_frame(@state, @mode, hud_data)
     end
 
     def send_action(action, params)
@@ -56,7 +55,7 @@ class App
             @state = new_state  # Update the state if it has changed
             # Allow only one accepted turn between movement ticks.
             @direction_changed_this_tick = true if action == :change_direction
-            @view.render(@state, @mode, hud_data)  # Re-render the game view
+            @view.render_frame(@state, @mode, hud_data)  # Re-render the game view
         end
     end
 
@@ -65,7 +64,8 @@ class App
         return unless @mode == :start_screen
 
         @mode = :running
-        @view.render(@state, @mode, hud_data)
+        @last_step_at = monotonic_now
+        @view.render_frame(@state, @mode, hud_data)
     end
 
     # Pauses or resumes gameplay while keeping the current board state.
@@ -73,7 +73,8 @@ class App
         return unless [:running, :paused].include?(@mode)
 
         @mode = (@mode == :running ? :paused : :running)
-        @view.render(@state, @mode, hud_data)
+        @last_step_at = monotonic_now if @mode == :running
+        @view.render_frame(@state, @mode, hud_data)
     end
 
     # Restarts the round and immediately enters running mode.
@@ -82,7 +83,7 @@ class App
 
         reset_game_state
         @mode = :running
-        @view.render(@state, @mode, hud_data)
+        @view.render_frame(@state, @mode, hud_data)
     end
 
     # Called by the view when the player closes the window or requests quit.
@@ -111,10 +112,20 @@ class App
         # Keep growth tracking in sync after every fresh round.
         @tracked_snake_length = @state.snake.positions.length
         @direction_changed_this_tick = false
+        @last_step_at = monotonic_now
     end
 
     def update_high_score
         @high_score = [@high_score, score].max
+    end
+
+    def step_due?
+        (monotonic_now - @last_step_at) >= @speed
+    end
+
+    # Uses monotonic time so gameplay speed is stable across system clock changes.
+    def monotonic_now
+        Process.clock_gettime(Process::CLOCK_MONOTONIC)
     end
     
     def increment_speed
