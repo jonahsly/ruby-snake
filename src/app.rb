@@ -5,6 +5,9 @@ require_relative "config/game_config"  # Load difficulty and tuning values
 
 class App
 
+    MAX_FRAME_DELTA_SECONDS = 0.25
+    MAX_STEPS_PER_FRAME = 5
+
     def initialize(config = Config::GameConfig.build_from_env)
         @config = config
         reset_game_state
@@ -25,22 +28,17 @@ class App
     # Drives one Ruby2D update frame from the window loop.
     def tick
         return unless @running
+        update_frame_timing
 
-        if @mode == :running && step_due?
-            @state = Actions::move_snake(@state)  # Update the game state by moving the snake
-            if @state.game_over
-                puts "GAME OVER"
-                puts "Puntaje: #{score}"
-                update_high_score
-                @mode = :game_over
+        if @mode == :running
+            simulated_steps = 0
+
+            # Run fixed simulation steps while enough frame time is accumulated.
+            while @step_accumulator >= @speed && simulated_steps < MAX_STEPS_PER_FRAME && @mode == :running
+                run_simulation_step
+                @step_accumulator -= @speed
+                simulated_steps += 1
             end
-            if @tracked_snake_length < @state.snake.positions.length  # Check if the snake has grown
-                @tracked_snake_length = @state.snake.positions.length  # Update the snake length tracker
-                increment_speed  # Increase the game speed
-            end
-            # Unlock one direction change for the next simulation tick.
-            @direction_changed_this_tick = false
-            @last_step_at = monotonic_now
         end
 
         @view.render_frame(@state, @mode, hud_data)
@@ -64,7 +62,7 @@ class App
         return unless @mode == :start_screen
 
         @mode = :running
-        @last_step_at = monotonic_now
+        reset_timing_state
         @view.render_frame(@state, @mode, hud_data)
     end
 
@@ -73,7 +71,7 @@ class App
         return unless [:running, :paused].include?(@mode)
 
         @mode = (@mode == :running ? :paused : :running)
-        @last_step_at = monotonic_now if @mode == :running
+        reset_timing_state if @mode == :running
         @view.render_frame(@state, @mode, hud_data)
     end
 
@@ -118,15 +116,43 @@ class App
         # Keep growth tracking in sync after every fresh round.
         @tracked_snake_length = @state.snake.positions.length
         @direction_changed_this_tick = false
-        @last_step_at = monotonic_now
+        reset_timing_state
     end
 
     def update_high_score
         @high_score = [@high_score, score].max
     end
 
-    def step_due?
-        (monotonic_now - @last_step_at) >= @speed
+    def run_simulation_step
+        @state = Actions::move_snake(@state)  # Update the game state by moving the snake
+        if @state.game_over
+            puts "GAME OVER"
+            puts "Puntaje: #{score}"
+            update_high_score
+            @mode = :game_over
+            return
+        end
+
+        if @tracked_snake_length < @state.snake.positions.length  # Check if the snake has grown
+            @tracked_snake_length = @state.snake.positions.length  # Update the snake length tracker
+            increment_speed  # Increase the game speed
+        end
+
+        # Unlock one direction change for the next simulation tick.
+        @direction_changed_this_tick = false
+    end
+
+    # Tracks real elapsed time between frames and caps spikes after stalls.
+    def update_frame_timing
+        now = monotonic_now
+        elapsed = now - @last_frame_at
+        @last_frame_at = now
+        @step_accumulator += [elapsed, MAX_FRAME_DELTA_SECONDS].min
+    end
+
+    def reset_timing_state
+        @last_frame_at = monotonic_now
+        @step_accumulator = 0.0
     end
 
     # Uses monotonic time so gameplay speed is stable across system clock changes.
