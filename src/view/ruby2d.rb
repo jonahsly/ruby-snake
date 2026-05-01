@@ -1,5 +1,6 @@
 require "ruby2d"
 require_relative "../model/state"
+require_relative "../controllers/input_controller"
 
 module View
 
@@ -10,6 +11,7 @@ module View
             # Pixel size is driven by selected difficulty to keep board readable.
             @pixel_size = app.config.pixel_size
             @app = app
+            @input_controller = Controllers::InputController.new(app)
             @status_labels = []
             @hud_labels = []
         end
@@ -42,6 +44,12 @@ module View
             render_food(state)  # Renders the food on the grid
             render_hud(hud_data)
             render_status(mode, hud_data[:score])
+        end
+
+        # Exposes a dedicated close operation for controllers and app state transitions.
+        def close_window
+            extend Ruby2D::DSL
+            close
         end
 
         private
@@ -170,29 +178,7 @@ module View
 
         # Handles key press events to change the direction of the snake
         def handle_key_event(event)
-            case event.key
-            when "up"
-                @app.send_action(:change_direction, Model::Direction::UP)
-            when "down"
-                @app.send_action(:change_direction, Model::Direction::DOWN)
-            when "left"
-                @app.send_action(:change_direction, Model::Direction::LEFT)
-            when "right"
-                @app.send_action(:change_direction, Model::Direction::RIGHT)
-            when "return"
-                # Starts the game from the start screen.
-                @app.start_game
-            when "p"
-                # Toggles pause/resume only for active gameplay.
-                @app.toggle_pause
-            when "r"
-                # Restarts the round from game over, paused, or running states.
-                @app.restart_game
-            when "escape", "q"
-                # Fast quit path to avoid leaving a running process in terminal.
-                @app.request_stop
-                close
-            end
+            @input_controller.handle_key(event.key)
         end
     end
 end

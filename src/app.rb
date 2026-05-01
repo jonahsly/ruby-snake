@@ -2,11 +2,9 @@ require_relative "view/ruby2d"  # Load the Ruby2D view script
 require_relative "model/state"  # Load the game state model
 require_relative "actions/actions"  # Load the actions script which contains game logic
 require_relative "config/game_config"  # Load difficulty and tuning values
+require_relative "runtime/game_loop"  # Load fixed-step scheduler
 
 class App
-
-    MAX_FRAME_DELTA_SECONDS = 0.25
-    MAX_STEPS_PER_FRAME = 5
 
     def initialize(config = Config::GameConfig.build_from_env)
         @config = config
@@ -28,17 +26,16 @@ class App
     # Drives one Ruby2D update frame from the window loop.
     def tick
         return unless @running
-        update_frame_timing
 
         if @mode == :running
-            simulated_steps = 0
-
-            # Run fixed simulation steps while enough frame time is accumulated.
-            while @step_accumulator >= @speed && simulated_steps < MAX_STEPS_PER_FRAME && @mode == :running
+            # Run fixed simulation steps as requested by the loop scheduler.
+            @game_loop.steps_due.times do
+                break unless @mode == :running
                 run_simulation_step
-                @step_accumulator -= @speed
-                simulated_steps += 1
             end
+        else
+            # Keep accumulator aligned while no gameplay simulation is running.
+            @game_loop.reset
         end
 
         @view.render_frame(@state, @mode, hud_data)
@@ -62,7 +59,7 @@ class App
         return unless @mode == :start_screen
 
         @mode = :running
-        reset_timing_state
+        @game_loop.reset
         @view.render_frame(@state, @mode, hud_data)
     end
 
@@ -71,7 +68,7 @@ class App
         return unless [:running, :paused].include?(@mode)
 
         @mode = (@mode == :running ? :paused : :running)
-        reset_timing_state if @mode == :running
+        @game_loop.reset if @mode == :running
         @view.render_frame(@state, @mode, hud_data)
     end
 
@@ -87,6 +84,11 @@ class App
     # Called by the view when the player closes the window or requests quit.
     def request_stop
         @running = false
+    end
+
+    # Provides a safe close path for controllers that should not own rendering details.
+    def close_window
+        @view.close_window if @view
     end
 
     # Exposes static runtime config to the view layer.
@@ -113,10 +115,11 @@ class App
     def reset_game_state
         @state = Model::initial_state(@config)
         @speed = @config.initial_speed_tick
+        @game_loop = Runtime::GameLoop.new(step_interval_seconds: @speed)
         # Keep growth tracking in sync after every fresh round.
         @tracked_snake_length = @state.snake.positions.length
         @direction_changed_this_tick = false
-        reset_timing_state
+        @game_loop.reset
     end
 
     def update_high_score
@@ -142,30 +145,13 @@ class App
         @direction_changed_this_tick = false
     end
 
-    # Tracks real elapsed time between frames and caps spikes after stalls.
-    def update_frame_timing
-        now = monotonic_now
-        elapsed = now - @last_frame_at
-        @last_frame_at = now
-        @step_accumulator += [elapsed, MAX_FRAME_DELTA_SECONDS].min
-    end
-
-    def reset_timing_state
-        @last_frame_at = monotonic_now
-        @step_accumulator = 0.0
-    end
-
-    # Uses monotonic time so gameplay speed is stable across system clock changes.
-    def monotonic_now
-        Process.clock_gettime(Process::CLOCK_MONOTONIC)
-    end
-    
     def increment_speed
         return unless @speed > @config.min_speed_tick
 
         # Reduce delay progressively using configured acceleration.
         @speed -= (@speed * @config.speed_acceleration_rate)
         @speed = @config.min_speed_tick if @speed < @config.min_speed_tick
+        @game_loop.step_interval_seconds = @speed
     end
 end
 
