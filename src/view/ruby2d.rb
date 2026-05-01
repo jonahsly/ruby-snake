@@ -7,7 +7,8 @@ module View
 
         # Initializes the view with the application instance and sets the pixel size for rendering
         def initialize(app)
-            @pixel_size = 50
+            # Pixel size is driven by selected difficulty to keep board readable.
+            @pixel_size = app.config.pixel_size
             @app = app
             @status_labels = []
             @hud_labels = []
@@ -70,6 +71,14 @@ module View
                 format("Speed: %.3fs", hud_data[:speed]),
                 x: 10,
                 y: 48,
+                size: 16,
+                color: "white",
+                z: 10
+            )
+            @hud_labels << Text.new(
+                "Difficulty: #{hud_data[:difficulty]}",
+                x: 10,
+                y: 68,
                 size: 16,
                 color: "white",
                 z: 10

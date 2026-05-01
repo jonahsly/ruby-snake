@@ -17,6 +17,7 @@ A simple implementation of the classic Snake game built with Ruby and Ruby2D.
 - Food spawning and snake growth.
 - Progressive speed increase as the snake gets longer.
 - In-game HUD with current score, high score, and speed.
+- Difficulty presets (`easy`, `normal`, `hard`) for grid and speed tuning.
 - One accepted turn per movement tick to avoid ambiguous double turns.
 - Basic automated tests for game actions.
 
@@ -43,6 +44,15 @@ bundle install
 ### Run the Game
 ```bash
 bundle exec ruby src/app.rb
+```
+
+Optional difficulty:
+```bash
+# Bash
+SNAKE_DIFFICULTY=hard bundle exec ruby src/app.rb
+
+# PowerShell
+$env:SNAKE_DIFFICULTY="hard"; bundle exec ruby src/app.rb
 ```
 
 ### Controls
@@ -83,6 +93,7 @@ This project is licensed under the MIT License. See `LICENSE` for details.
 - Aparicion de comida y crecimiento de la serpiente.
 - Aumento progresivo de velocidad a medida que crece.
 - HUD en juego con puntaje actual, mejor puntaje y velocidad.
+- Presets de dificultad (`easy`, `normal`, `hard`) para ajustar grilla y velocidad.
 - Un solo giro aceptado por tick para evitar dobles giros ambiguos.
 - Pruebas automaticas basicas para las acciones del juego.
 
@@ -109,6 +120,15 @@ bundle install
 ### Ejecutar el Juego
 ```bash
 bundle exec ruby src/app.rb
+```
+
+Dificultad opcional:
+```bash
+# Bash
+SNAKE_DIFFICULTY=hard bundle exec ruby src/app.rb
+
+# PowerShell
+$env:SNAKE_DIFFICULTY="hard"; bundle exec ruby src/app.rb
 ```
 
 ### Controles

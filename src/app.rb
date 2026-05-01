@@ -1,12 +1,12 @@
 require_relative "view/ruby2d"  # Load the Ruby2D view script
 require_relative "model/state"  # Load the game state model
 require_relative "actions/actions"  # Load the actions script which contains game logic
+require_relative "config/game_config"  # Load difficulty and tuning values
 
 class App
 
-    INITIAL_SPEED = 0.5
-
-    def initialize
+    def initialize(config = Config::GameConfig.build_from_env)
+        @config = config
         reset_game_state
         @running = false  # Controls timer loop lifecycle
         @mode = :start_screen
@@ -91,6 +91,11 @@ class App
         @running = false
     end
 
+    # Exposes static runtime config to the view layer.
+    def config
+        @config
+    end
+
     private 
 
     def score
@@ -102,13 +107,14 @@ class App
         {
             score: score,
             high_score: @high_score,
-            speed: @speed
+            speed: @speed,
+            difficulty: @config.name
         }
     end
 
     def reset_game_state
-        @state = Model::initial_state
-        @speed = INITIAL_SPEED
+        @state = Model::initial_state(@config)
+        @speed = @config.initial_speed_tick
         # Keep growth tracking in sync after every fresh round.
         @tracked_snake_length = @state.snake.positions.length
         @direction_changed_this_tick = false
@@ -129,12 +135,11 @@ class App
     end
     
     def increment_speed
-        if @speed > 0.001  # Ensure speed does not become too fast
-            @speed = @speed - (@speed * 0.05)  # Reduce speed by 5%
-            if @speed < 0.001
-                @speed = 0.001  # Set a minimum speed limit
-            end
-        end     
+        return unless @speed > @config.min_speed_tick
+
+        # Reduce delay progressively using configured acceleration.
+        @speed -= (@speed * @config.speed_acceleration_rate)
+        @speed = @config.min_speed_tick if @speed < @config.min_speed_tick
     end
 end
 

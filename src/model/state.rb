@@ -33,15 +33,18 @@ module Model
         # Inherits from Struct to manage game state including snake, food, grid, current direction, and game status
     end
 
-    # Method to initialize the game state with default values
-    def self.initial_state
+    # Method to initialize the game state with configurable defaults.
+    def self.initial_state(config = nil)
+        rows = config&.grid_rows || 8
+        columns = config&.grid_columns || 10
+
         Model::State.new(
             Model::Snake.new([
                 Model::Coord.new(1, 1),  # Starting position of the snake's head
                 Model::Coord.new(0, 1)   # Starting position of the snake's second segment
             ]),
-            Model::Food.new(4, 4),      # Initial position of the food
-            Model::Grid.new(8, 10),     # Size of the grid
+            Model::Food.new([4, rows - 1].min, [4, columns - 1].min), # Keep initial food in bounds.
+            Model::Grid.new(rows, columns),     # Size of the grid
             Direction::DOWN,            # Initial movement direction of the snake
             false                       # Game over flag set to false initially
         )
