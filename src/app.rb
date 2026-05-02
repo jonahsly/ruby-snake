@@ -3,15 +3,17 @@ require_relative "model/state"  # Load the game state model
 require_relative "actions/actions"  # Load the actions script which contains game logic
 require_relative "config/game_config"  # Load difficulty and tuning values
 require_relative "runtime/game_loop"  # Load fixed-step scheduler
+require_relative "persistence/high_score_store"  # Load local high score persistence
 
 class App
 
-    def initialize(config = Config::GameConfig.build_from_env)
+    def initialize(config = Config::GameConfig.build_from_env, high_score_store = Persistence::HighScoreStore.new)
         @config = config
+        @high_score_store = high_score_store
         reset_game_state
         @running = false  # Controls timer loop lifecycle
         @mode = :start_screen
-        @high_score = 0
+        @high_score = @high_score_store.load
     end
 
     def start
@@ -123,7 +125,10 @@ class App
     end
 
     def update_high_score
-        @high_score = [@high_score, score].max
+        return unless score > @high_score
+
+        # Persist only when a new record is achieved.
+        @high_score = @high_score_store.save(score)
     end
 
     def run_simulation_step
