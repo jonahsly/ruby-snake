@@ -1,0 +1,31 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - "**"
+  pull_request:
+    branches:
+      - "**"
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          # Matches project lockfile for deterministic dependency resolution.
+          bundler-cache: true
+
+      - name: Run test suite
+        run: |
+          # Execute all test files to keep CI aligned with local verification.
+          bundle exec ruby test/actions_test.rb
+          bundle exec ruby test/model_state_test.rb
+          bundle exec ruby test/runtime_game_loop_test.rb
+          bundle exec ruby test/high_score_store_test.rb
