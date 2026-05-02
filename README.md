@@ -19,6 +19,7 @@ A simple implementation of the classic Snake game built with Ruby and Ruby2D.
 - In-game HUD with current score, high score, and speed.
 - Persistent high score saved locally between sessions.
 - Difficulty presets (`easy`, `normal`, `hard`) for grid and speed tuning.
+- Refined visual theme with animated overlays for start, pause, and game over states.
 - One accepted turn per movement tick to avoid ambiguous double turns.
 - Basic automated tests for game actions.
 
@@ -99,6 +100,7 @@ This project is licensed under the MIT License. See `LICENSE` for details.
 - HUD en juego con puntaje actual, mejor puntaje y velocidad.
 - Mejor puntaje persistido localmente entre sesiones.
 - Presets de dificultad (`easy`, `normal`, `hard`) para ajustar grilla y velocidad.
+- Tema visual mejorado con overlays animados para inicio, pausa y fin de partida.
 - Un solo giro aceptado por tick para evitar dobles giros ambiguos.
 - Pruebas automaticas basicas para las acciones del juego.
 
