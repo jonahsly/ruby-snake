@@ -6,6 +6,7 @@ require_relative "runtime/game_loop"  # Load fixed-step scheduler
 require_relative "persistence/high_score_store"  # Load local high score persistence
 
 class App
+    GAME_OVER_EXIT_DELAY_SECONDS = 2.0
 
     def initialize(config = Config::GameConfig.build_from_env, high_score_store = Persistence::HighScoreStore.new)
         @config = config
@@ -39,6 +40,8 @@ class App
             # Keep accumulator aligned while no gameplay simulation is running.
             @game_loop.reset
         end
+
+        close_after_game_over_delay if @mode == :game_over
 
         @view.render_frame(@state, @mode, hud_data)
     end
@@ -138,6 +141,7 @@ class App
             puts "Puntaje: #{score}"
             update_high_score
             @mode = :game_over
+            @game_over_started_at = monotonic_now
             return
         end
 
@@ -157,6 +161,20 @@ class App
         @speed -= (@speed * @config.speed_acceleration_rate)
         @speed = @config.min_speed_tick if @speed < @config.min_speed_tick
         @game_loop.step_interval_seconds = @speed
+    end
+
+    def close_after_game_over_delay
+        return unless @game_over_started_at
+        return if (monotonic_now - @game_over_started_at) < GAME_OVER_EXIT_DELAY_SECONDS
+
+        # Close the window after showing final feedback long enough for the player to read it.
+        request_stop
+        close_window
+    end
+
+    # Uses monotonic time so delayed exit is not affected by system clock changes.
+    def monotonic_now
+        Process.clock_gettime(Process::CLOCK_MONOTONIC)
     end
 end
 

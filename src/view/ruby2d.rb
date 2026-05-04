@@ -212,30 +212,48 @@ module View
         
         # Renders the food at its current position
         def render_food(state)
-            @food.remove if @food  # Removes the old food square if it exists
             extend Ruby2D::DSL
             food = state.food
-            @food = Square.new(
-                x: food.column * @pixel_size,  # X position based on grid column
-                y: food.row * @pixel_size,    # Y position based on grid row
-                z: -1,  # Z index for layering
-                size: @pixel_size,
-                color: THEME[:food]
-            )            
+            unless @food
+                @food = Square.new(
+                    x: 0,
+                    y: 0,
+                    z: -1,
+                    size: @pixel_size,
+                    color: THEME[:food]
+                )
+            end
+
+            # Reuse the existing shape to avoid per-frame allocation churn.
+            @food.x = food.column * @pixel_size
+            @food.y = food.row * @pixel_size
         end
 
         # Renders the snake at its current positions
         def render_snake(state)
-            @snake_positions.each(&:remove) if @snake_positions  # Removes old snake squares
             extend Ruby2D::DSL
             snake = state.snake
-            @snake_positions = snake.positions.map.with_index do |pos, index|
-                Square.new(
-                    x: pos.column * @pixel_size,  # X position based on grid column
-                    y: pos.row * @pixel_size,    # Y position based on grid row
+            @snake_positions ||= []
+
+            while @snake_positions.length < snake.positions.length
+                # Grow the render pool only when the snake actually grows.
+                @snake_positions << Square.new(
+                    x: 0,
+                    y: 0,
                     size: @pixel_size,
-                    color: index.zero? ? THEME[:snake_head] : THEME[:snake_body]
+                    color: THEME[:snake_body]
                 )
+            end
+
+            while @snake_positions.length > snake.positions.length
+                @snake_positions.pop.remove
+            end
+
+            snake.positions.each_with_index do |pos, index|
+                square = @snake_positions[index]
+                square.x = pos.column * @pixel_size
+                square.y = pos.row * @pixel_size
+                square.color = index.zero? ? THEME[:snake_head] : THEME[:snake_body]
             end
         end
 
